@@ -20,9 +20,9 @@ Vagrant.configure(2) do |config|
     gcc -std=gnu99 \
        -Wall -Wstrict-prototypes -Wformat-security -Wshadow -Wextra -Wno-unused-parameter \
        -Wbad-function-cast -Wcast-align -Wredundant-decls -Werror -g -O2 \
-       -o src/openocd src/main.o  src/.libs/libopenocd.a \
-       -lusb -lftdi -lhidapi-hidraw -lusb-1.0 -lm ./jimtcl/libjim.a -ldl -pthread -static \
-       -Wl,-Bdynamic -ludev
+       -o src/openocd src/main.o  src/.libs/libopenocd.a ./jimtcl/libjim.a \
+       -Wl,-Bstatic -lusb -lftdi -lhidapi-hidraw -lusb-1.0 \
+       -Wl,-Bdynamic -ludev -lm -ldl -pthread
     make install
     tar --transform 's/dist/openocd-0.10.0/' -jcvf openocd-0.10.0.tar.bz2 dist/
     mv openocd-0.10.0.tar.bz2 /vagrant

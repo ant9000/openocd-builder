@@ -1,0 +1,30 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+Vagrant.configure(2) do |config|
+  config.vm.box = "ubuntu/trusty32"
+  config.vm.provider "virtualbox" do |vb|
+    vb.memory = 256
+  end
+  config.vm.provision "shell", inline: <<-SHELL
+    apt-get -y install pkg-config libhidapi-dev libusb-1.0.0-dev libusb-dev libftdi-dev libudev-dev
+  SHELL
+  config.vm.provision "shell", privileged: false, inline: <<-SHELL
+    wget --trust-server-names https://sourceforge.net/projects/openocd/files/openocd/0.10.0/openocd-0.10.0.tar.bz2/download
+    tar xf openocd-0.10.0.tar.bz2
+    cd openocd-0.10.0
+    ./configure --prefix=`pwd`/dist/
+    make
+    # relink openocd binary with external libraries compiled statically in
+    # (libudev.a is not available on Debian, so libudev needs to be linked dynamically)
+    gcc -std=gnu99 \
+       -Wall -Wstrict-prototypes -Wformat-security -Wshadow -Wextra -Wno-unused-parameter \
+       -Wbad-function-cast -Wcast-align -Wredundant-decls -Werror -g -O2 \
+       -o src/openocd src/main.o  src/.libs/libopenocd.a ./jimtcl/libjim.a \
+       -Wl,-Bstatic -lusb -lftdi -lhidapi-hidraw -lusb-1.0 \
+       -Wl,-Bdynamic -ludev -lm -ldl -pthread
+    make install
+    tar --transform 's/dist/openocd-0.10.0/' -jcvf openocd-0.10.0-static-i686-linux-gnu.tar.bz2 dist/
+    mv openocd-0.10.0-static-i686-linux-gnu.tar.bz2 /vagrant/
+  SHELL
+end

@@ -1,0 +1,30 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+Vagrant.configure(2) do |config|
+  config.vm.box = "ubuntu/trusty64"
+  config.vm.provider "virtualbox" do |vb|
+    vb.memory = 256
+  end
+  config.vm.provision "shell", inline: <<-SHELL
+    apt-get -y install mingw-w64 git autotools-dev autoconf automake libtool
+  SHELL
+  config.vm.provision "shell", privileged: false, inline: <<-SHELL
+    git clone https://github.com/signal11/hidapi.git
+    cd hidapi
+    ./bootstrap
+    ./configure --prefix=`pwd`/dist/ --host=i686-w64-mingw32
+    make -j $(grep -c processor /proc/cpuinfo)
+    make install
+    wget --trust-server-names https://sourceforge.net/projects/openocd/files/openocd/0.10.0/openocd-0.10.0.tar.bz2/download
+    tar xf openocd-0.10.0.tar.bz2
+    cd openocd-0.10.0
+    ./configure --prefix=`pwd`/dist/ --host=i686-w64-mingw32 \
+       HIDAPI_CFLAGS="-I/home/vagrant/hidapi/dist/include/hidapi" HIDAPI_LIBS="-L/home/vagrant/hidapi/dist/lib -lhidapi"
+    make -j $(grep -c processor /proc/cpuinfo)
+    make install
+    cp /home/vagrant/hidapi/dist/bin/libhidapi-0.dll dist/bin
+    tar --transform 's/dist/openocd-0.10.0/' -jcvf openocd-0.10.0-static-i686-mingw32.tar.bz2 dist/
+    mv openocd-0.10.0-static-i686-mingw32.tar.bz2 /vagrant/
+  SHELL
+end

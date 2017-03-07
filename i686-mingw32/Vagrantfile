@@ -17,15 +17,15 @@ Vagrant.configure(2) do |config|
     7zr x ../libusb-1.0.21.7z
     cat >libusb-1.0.pc <<EOF
 prefix=$(pwd)
-exec_prefix=\${prefix}
-libdir=\${prefix}/MinGW32/dll
-includedir=\${prefix}/include
+exec_prefix=\\\${prefix}
+libdir=\\\${prefix}/MinGW32/dll
+includedir=\\\${prefix}/include
 
 Name: libusb-1.0
 Description: C API for USB device access from Linux, Mac OS X, Windows and OpenBSD/NetBSD userspace
 Version: 1.0.21
-Libs: -L\${libdir} -lusb-1.0
-Cflags: -I\${includedir}/libusb-1.0
+Libs: -L\\\${libdir} -lusb-1.0
+Cflags: -I\\\${includedir}/libusb-1.0
 EOF
     cd ..
     # hidapi
@@ -40,9 +40,11 @@ EOF
     wget --trust-server-names https://sourceforge.net/projects/openocd/files/openocd/0.10.0/openocd-0.10.0.tar.bz2/download
     tar xf openocd-0.10.0.tar.bz2
     cd openocd-0.10.0
-    ./configure --prefix=`pwd`/dist/ --host=i686-w64-mingw32 \
-       PKG_CONFIG_LIBDIR="/home/vagrant/libusb1/" \
-       HIDAPI_CFLAGS="-I/home/vagrant/hidapi/dist/include/hidapi" HIDAPI_LIBS="-L/home/vagrant/hidapi/dist/lib -lhidapi"
+    export PKG_CONFIG=i686-w64-mingw32-pkg-config \
+           PKG_CONFIG_LIBDIR="/home/vagrant/libusb1/" \
+           HIDAPI_CFLAGS="-I/home/vagrant/hidapi/dist/include/hidapi" \
+           HIDAPI_LIBS="-L/home/vagrant/hidapi/dist/lib -lhidapi"
+    ./configure --prefix=`pwd`/dist/ --host=i686-w64-mingw32
     make -j $(grep -c processor /proc/cpuinfo)
     make install
     #

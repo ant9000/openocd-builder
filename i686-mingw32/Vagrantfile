@@ -40,10 +40,7 @@ EOF
     wget --trust-server-names https://sourceforge.net/projects/openocd/files/openocd/0.10.0/openocd-0.10.0.tar.bz2/download
     tar xf openocd-0.10.0.tar.bz2
     cd openocd-0.10.0
-    export PKG_CONFIG=i686-w64-mingw32-pkg-config \
-           PKG_CONFIG_LIBDIR="/home/vagrant/libusb1/" \
-           HIDAPI_CFLAGS="-I/home/vagrant/hidapi/dist/include/hidapi" \
-           HIDAPI_LIBS="-L/home/vagrant/hidapi/dist/lib -lhidapi"
+    export PKG_CONFIG_LIBDIR="/home/vagrant/libusb1/:/home/vagrant/hidapi/dist/lib/pkgconfig/"
     ./configure --prefix=`pwd`/dist/ --host=i686-w64-mingw32
     make -j $(grep -c processor /proc/cpuinfo)
     make install
